@@ -19,6 +19,16 @@ export default async function Page() {
   // destructure the data returned from fetchCardData
   const { totalPaidInvoices, totalPendingInvoices, numberOfInvoices, numberOfCustomers } = await fetchCardData();
 
+  // Note that we need to wait for fetchRevenue() to execute before fetchLatestInvoices() can start running,
+  // which is a pattern called "network waterfall". 
+  // There are cases where you want waterfalls because you want a condition to be satisfied before you make the next request.
+  // But in this case, we don't need to wait for one request to finish before we make the next one.
+  // We can improve this by using Promise.all() to run both functions at the same time.
+  // By using this pattern, you can start executing all data fetches at the same time, which can lead to performance gains.
+  // However, there is one disadvantage of relying only on this JavaScript pattern: what happens if one data request is slower than all the others?
+
+  const data = await Promise.all([ totalPaidInvoices, totalPendingInvoices, numberOfInvoices, numberOfCustomers]);
+
   return (
     <main>
       <h1 className={`${lusitana.className} mb-4 text-xl md:text-2xl`}>
