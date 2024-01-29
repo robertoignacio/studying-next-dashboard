@@ -26,6 +26,7 @@ export default async function Page() {
   // We can improve this by using Promise.all() to run both functions at the same time.
   // By using this pattern, you can start executing all data fetches at the same time, which can lead to performance gains.
   // However, there is one disadvantage of relying only on this JavaScript pattern: what happens if one data request is slower than all the others?
+  // With dynamic rendering, your application is only as fast as your slowest data fetch.
 
   const data = await Promise.all([ totalPaidInvoices, totalPendingInvoices, numberOfInvoices, numberOfCustomers]);
 

@@ -10,20 +10,25 @@ import {
 } from './definitions';
 import { formatCurrency } from './utils';
 
+// making the dashboard dynamic
+import { unstable_noStore as noStore } from 'next/cache';
+
 export async function fetchRevenue() {
-  // Add noStore() here to prevent the response from being cached.
+  // Add noStore() here to prevent the response from being cached by data fetching functions.
+  // Note that unstable_noStore is an experimental API, so remove it later.
   // This is equivalent to in fetch(..., {cache: 'no-store'}).
+  noStore();
 
   try {
     // Artificially delay a response for demo purposes.
     // Don't do this in production :)
 
-    // console.log('Fetching revenue data...');
-    // await new Promise((resolve) => setTimeout(resolve, 3000));
+    console.log('Fetching revenue data...');
+    await new Promise((resolve) => setTimeout(resolve, 3000));
 
     const data = await sql<Revenue>`SELECT * FROM revenue`;
 
-    // console.log('Data fetch completed after 3 seconds.');
+    console.log('Data fetch completed after 3 seconds.');
 
     return data.rows;
   } catch (error) {
@@ -33,6 +38,10 @@ export async function fetchRevenue() {
 }
 
 export async function fetchLatestInvoices() {
+  // Add noStore() here to prevent the response from being cached by data fetching functions.
+  // This is equivalent to in fetch(..., {cache: 'no-store'}).
+  noStore();
+
   try {
     // use an SQL query to fetch only the last 5 invoices
     const data = await sql<LatestInvoiceRaw>`
@@ -54,6 +63,10 @@ export async function fetchLatestInvoices() {
 }
 
 export async function fetchCardData() {
+  // Add noStore() here to prevent the response from being cached by data fetching functions.
+  // This is equivalent to in fetch(..., {cache: 'no-store'}).
+  noStore();
+
   try {
     // You can probably combine these into a single SQL query
     // However, we are intentionally splitting them to demonstrate
@@ -126,6 +139,10 @@ export async function fetchFilteredInvoices(
 }
 
 export async function fetchInvoicesPages(query: string) {
+  // Add noStore() here to prevent the response from being cached by data fetching functions.
+  // This is equivalent to in fetch(..., {cache: 'no-store'}).
+  noStore();
+
   try {
     const count = await sql`SELECT COUNT(*)
     FROM invoices
@@ -147,6 +164,10 @@ export async function fetchInvoicesPages(query: string) {
 }
 
 export async function fetchInvoiceById(id: string) {
+  // Add noStore() here to prevent the response from being cached by data fetching functions.
+  // This is equivalent to in fetch(..., {cache: 'no-store'}).
+  noStore();
+
   try {
     const data = await sql<InvoiceForm>`
       SELECT
@@ -190,6 +211,10 @@ export async function fetchCustomers() {
 }
 
 export async function fetchFilteredCustomers(query: string) {
+  // Add noStore() here to prevent the response from being cached by data fetching functions.
+  // This is equivalent to in fetch(..., {cache: 'no-store'}).
+  noStore();
+
   try {
     const data = await sql<CustomersTableType>`
 		SELECT
