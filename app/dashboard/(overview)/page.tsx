@@ -1,6 +1,9 @@
 // only the directories with a page.tsx file will be shown at the site app path (called 'leaves')
 
-import { Card } from '@/app/ui/dashboard/cards';
+
+// remove the <Card> components
+//import { Card } from '@/app/ui/dashboard/cards';
+
 import RevenueChart from '@/app/ui/dashboard/revenue-chart';
 import LatestInvoices from '@/app/ui/dashboard/latest-invoices';
 import { lusitana } from '@/app/ui/fonts';
@@ -9,13 +12,21 @@ import { lusitana } from '@/app/ui/fonts';
 // import { fetchRevenue } from '@/app/lib/data';
 // moved fetchLatestInvoices() to a Suspense component;
 //import { fetchLatestInvoices } from '@/app/lib/data';
-import { fetchCardData } from '@/app/lib/data'; 
+// moved fetchCardData() to a Suspense component;
+//import { fetchCardData } from '@/app/lib/data'; 
+
+
 
 // import <Suspense> from React, to wrap it around <RevenueChart /> and <LatestInvoices />
 import { Suspense } from 'react';
 // You can pass it fallback components
 import { RevenueChartSkeleton } from '@/app/ui/skeletons';
 import { LatestInvoicesSkeleton } from '@/app/ui/skeletons';
+
+// wrap the <Card> components in Suspense
+import CardWrapper from '@/app/ui/dashboard/cards';
+// import the skeleton for the wrapper
+import { CardsSkeleton } from '@/app/ui/skeletons';
 
 
 // Page is an async component, which allows you to use await to fetch data
@@ -27,8 +38,8 @@ export default async function Page() {
   // removed 
   // const latestInvoices = await fetchLatestInvoices();
 
-  // destructure the data returned from fetchCardData
-  const { totalPaidInvoices, totalPendingInvoices, numberOfInvoices, numberOfCustomers } = await fetchCardData();
+  // move the destructure the data returned from fetchCardData to the CardWrapper component
+  // const { totalPaidInvoices, totalPendingInvoices, numberOfInvoices, numberOfCustomers } = await fetchCardData();
 
   // Note that we need to wait for fetchRevenue() to execute before fetchLatestInvoices() can start running,
   // which is a pattern called "network waterfall". 
@@ -39,7 +50,7 @@ export default async function Page() {
   // However, there is one disadvantage of relying only on this JavaScript pattern: what happens if one data request is slower than all the others?
   // With dynamic rendering, your application is only as fast as your slowest data fetch.
 
-  const data = await Promise.all([ totalPaidInvoices, totalPendingInvoices, numberOfInvoices, numberOfCustomers]);
+  // const data = await Promise.all([ totalPaidInvoices, totalPendingInvoices, numberOfInvoices, numberOfCustomers]);
 
   return (
     <main>
@@ -47,6 +58,12 @@ export default async function Page() {
         Dashboard
       </h1>
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+
+        {/* wrap the <Card> components in Suspense */}
+        <Suspense fallback={<CardsSkeleton />}>
+          <CardWrapper />
+        </Suspense>
+        {/*
         <Card title="Collected" value={totalPaidInvoices} type="collected" />
         <Card title="Pending" value={totalPendingInvoices} type="pending" />
         <Card title="Total Invoices" value={numberOfInvoices} type="invoices" />
@@ -54,7 +71,7 @@ export default async function Page() {
           title="Total Customers"
           value={numberOfCustomers}
           type="customers"
-        />
+        />*/}
       </div>
       <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-4 lg:grid-cols-8">
         {/* remove the props */}
