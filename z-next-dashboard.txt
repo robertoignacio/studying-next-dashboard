@@ -1,0 +1,239 @@
+....................
+ch06
+https://nextjs.org/learn/dashboard-app/setting-up-your-database
+
+Remember that you can use "nmp run" for _any_ script that can be run by node js, even from package.json
+
+"scripts": {
+    "build": "next build",
+    "dev": "next dev",
+    "prettier": "prettier --write --ignore-unknown .",
+    "prettier:check": "prettier --check --ignore-unknown .",
+    "start": "next start",
+    "seed": "node -r dotenv/config ./scripts/seed.js"
+  },
+
+Removed "seed"
+....................
+ch07+ch08
+https://nextjs.org/learn/dashboard-app/fetching-data
+
+APIs are an intermediary layer between your application code and database.
+In Next.js, you can create API endpoints using Route Handlers.
+
+When you're creating a full-stack application, you'll also need to write logic to interact with your database. 
+For relational databases like Postgres, you can do this with SQL, or an ORM like Prisma.
+
+--> Never fetch data directly on the client (without an .env file), because you would expose your database secrets.
+
+There are a few cases where you have to write database queries:
+
+• When creating your API endpoints, you need to write logic to interact with your database.
+
+• If you are using React Server Components (fetching data on the server), you can skip the API layer, 
+and query your database directly without risking exposing your database secrets to the client.
+
+By default, Next.js applications use React Server Components.
+
+Server Components execute on the server, 
+so you can keep expensive data fetches and logic on the server and only send the result to the client.
+
+Because Server Components execute on the server, you can query the database directly without an additional API layer.
+
+Server Components support promises, providing a simpler solution for asynchronous tasks like data fetching. 
+You can use async/await syntax without reaching out for useEffect, useState or data fetching libraries.
+
+
+
+For your dashboard project, you'll write database queries using the Vercel Postgres SDK and SQL. 
+(The Vercel Postgres SDK provides protection against SQL injections)
+
+  /app/lib/data.ts
+  import { sql } from '@vercel/postgres';
+
+
+You can call sql inside any Server Component.
+But is cleaner to have the data queries inside an external file, and import them from there.
+
+
+
+
+....................
+ch09
+https://nextjs.org/learn/dashboard-app/streaming
+
+Streaming is a data transfer technique that allows you to break down a route into smaller "chunks" 
+and progressively stream them from the server to the client as they become ready.
+
+Example: partial content with loading state ---> suspended content streaming in
+
+By streaming, you can prevent slow data requests from blocking your whole page. 
+This allows the user to see and interact with parts of the page 
+without waiting for all the data to load before any UI can be shown to the user.
+
+Chunks are rendered in parallel, reducing the overall load time.
+
+There are two ways you implement streaming in Next.js:
+  1. At the page level, with the loading.tsx file.
+  2. For specific components, with <Suspense>.
+
+Because a previous delay was setup at ch08 you can demo the streaming
+(at app/lib/data.ts --> fetchRevenue() --> added delay there that will trigger the "loading..." file)
+
+Streaming a whole page with loading.tsx
+In the /app/dashboard folder, create a new file called loading.tsx
+Remember that "loading.tsx" is a reserved special file name on Next.js
+
+loading.tsx is a special Next.js file built on top of Suspense.
+Suspense allows you to create fallback UI to show as a replacement while page content loads.
+
+Since <SideNav> is static, it's shown immediately. 
+The user can interact with <SideNav> while the dynamic content is loading.
+
+The user doesn't have to wait for the page to finish loading before navigating away.
+(This is called interruptable navigation)
+
+
+Add a loading skeleton on loading.tsx
+
+
+/app/dashboard/loading.tsx
+
+import DashboardSkeleton from '@/app/ui/skeletons';
+ 
+export default function Loading() {
+  return <DashboardSkeleton />;
+}
+
+
+
+As is its by now, loading skeleton will apply to the invoices and customers pages as well.
+Why?
+Because loading.tsx is a level higher than /invoices/page.tsx and /customers/page.tsx in the file system
+and it will be applied to all the pages below it.
+
+You can mark a folder as a Route Group to prevent the folder from being included in the route's URL path.
+A route group can be created by wrapping a folder's name in parenthesis: (folderName)
+To organize routes without affecting the URL, create a group to keep related routes together. 
+The folders in parenthesis will be omitted from the URL
+
+
+Create a new folder at app/dashboard called /(overview) inside the dashboard folder. 
+Then, move your loading.tsx and page.tsx files inside the folder.
+
+Now, the loading.tsx file will only apply to your dashboard overview page.
+
+So /dashboard/(overview)/page.tsx becomes /dashboard.
+Here, you're using a route group to ensure loading.tsx only applies to your dashboard overview page. 
+
+
+
+However, you can also use route groups to separate your application into sections 
+(e.g. (marketing) routes and (shop) routes) or by teams for larger applications.
+
+....................
+ch09 +
+https://nextjs.org/learn/dashboard-app/streaming#streaming-a-component
+
+So far, you're streaming a whole page. 
+But, instead, you can be more granular and stream specific components using React Suspense.
+
+Suspense allows you to defer rendering parts of your application until some condition is met (e.g. data is loaded). 
+You can wrap your dynamic components in Suspense. 
+Then, pass it a fallback component to show while the dynamic component loads.
+
+If you remember the slow data request, fetchRevenue(), 
+this is the request that is slowing down the whole page. 
+Instead of blocking your page, you can use Suspense to stream only this component 
+and immediately show the rest of the page's UI.
+
+
+enable streaming on the dashboard: 
+fetchRevenue() 
+fetchLatestInvoices()
+
++
+enable staggered load (one first, then other block) of the Card components
+This means the static <SideNav/> will be shown first, followed by the cards, etc.
+
+You can use this pattern when you want multiple components to load in at the same time.
+
+
+....................
+https://nextjs.org/learn/dashboard-app/streaming#deciding-where-to-place-your-suspense-boundaries
+
+Where to place the Suspense boundaries?
+
+Depends on a few things:
+  1. How you want the user to experience the page as it streams.
+  2. What content you want to prioritize.
+  3. If the components rely on data fetching.
+
+There isn't a right answer.
+
+a) You could stream the whole page like we did with loading.tsx... 
+but that may lead to a longer loading time if one of the components has a slow data fetch.
+
+b) You could stream every component individually... 
+but that may lead to UI popping into the screen as it becomes ready.
+
+c) You could also create a staggered effect by streaming page sections. 
+But you'll need to create wrapper components.
+
+Where you place your suspense boundaries will vary depending on your application. 
+In general, it's good practice to move your data fetches down to the components that need it, 
+and then wrap those components in Suspense. 
+
+Don't be afraid to experiment with Suspense and see what works best.
+
+Streaming and Server Components give us new ways to handle data fetching and loading states, 
+ultimately with the goal of improving the end user experience.
+
+
+
+....................
+ch10
+https://nextjs.org/learn/dashboard-app/partial-prerendering
+
+
+Partial Prerendering is an experimental feature introduced in Next.js 14. 
+The content of this page may be updated as the feature progresses in stability. 
+You may want to skip this chapter.
+
+On how web apps are built today you either choose 
+between static and dynamic rendering for your entire application or for a specific route.
+
+However, most routes are not fully static or dynamic. 
+You may have a route that has both static and dynamic content. 
+
+At the dashboard:
+• The <SideNav> Component doesn't rely on data and is not personalized to the user, so it can be static (or static revalidated)
+• The components in <Page> rely on data that changes often and will be personalized to the user, so they can be dynamic.
+
+Next.js 14 contains a preview of Partial Prerendering – an experimental feature 
+that allows you to render a route with a static loading shell, while keeping some parts dynamic. 
+
+In other words, you can isolate the dynamic parts of a route. 
+
+
+This makes possible when a user visits a route:
+• A static route shell is served, ensuring a fast initial load.
+• The shell leaves holes where dynamic content will load in asynchronous.
+• The async holes are streamed in parallel, reducing the overall load time of the page.
+
+
+How does Partial Prerendering work?
+
+Partial Prerendering leverages React's Concurrent APIs and uses Suspense 
+to defer rendering parts of your application until some condition is met (e.g. data is loaded).
+
+The fallback is embedded into the initial static file along with other static content. 
+At build time (or during revalidation), the static parts of the route are prerendered, 
+and the rest is postponed until the user requests the route.
+
+It's important to note that this feature is experimental and not yet ready for production deployment.
+
+
+....................
+ch11
+https://nextjs.org/learn/dashboard-app/adding-search-and-pagination
