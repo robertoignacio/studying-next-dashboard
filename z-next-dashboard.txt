@@ -1,3 +1,6 @@
+This is a notes file for the Next.js tutorial,
+just personal notes for myself while I follow along, that I can refer to later on.
+
 ....................
 ch06
 https://nextjs.org/learn/dashboard-app/setting-up-your-database
@@ -14,6 +17,8 @@ Remember that you can use "nmp run" for _any_ script that can be run by node js,
   },
 
 Removed "seed"
+
+
 ....................
 ch07+ch08
 https://nextjs.org/learn/dashboard-app/fetching-data
@@ -237,3 +242,9 @@ It's important to note that this feature is experimental and not yet ready for p
 ....................
 ch11
 https://nextjs.org/learn/dashboard-app/adding-search-and-pagination
+
+Implement search and pagination using URL search params.
+
+--> Spend some time familiarizing yourself with the page and the components you'll be working with
+
+
